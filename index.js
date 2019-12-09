@@ -19,7 +19,7 @@ module.exports = Base = Class.extend({
     type = this.internals.mod.type;
 
     this.eventEmmiter = new events.EventEmitter();
-    for(var n in events.EventEmitter.prototype) {
+    for (var n in events.EventEmitter.prototype) {
       this[n] = events.EventEmitter.prototype[n];
     }
   },
@@ -29,7 +29,7 @@ module.exports = Base = Class.extend({
   },
 
   mapDataType: function(str) {
-    switch(str) {
+    switch (str) {
       case type.STRING:
         return 'VARCHAR';
       case type.TEXT:
@@ -67,12 +67,12 @@ module.exports = Base = Class.extend({
 
   truncate: function(tableName, callback) {
 
-    return this.runSql('TRUNCATE ' + this._escapeDDL  + tableName + this._escapeDDL).nodeify(callback);
+    return this.runSql('TRUNCATE ' + this._escapeDDL + tableName + this._escapeDDL).nodeify(callback);
   },
 
   checkDBMS: function(dbms, callback) {
 
-    if( this.dbms === dbms )
+    if (this.dbms === dbms)
       return Promise.resolve(dbms).nodeify(callback);
     else
       return Promise.reject('dbms does not match');
@@ -91,12 +91,12 @@ module.exports = Base = Class.extend({
     throw new Error('not implemented');
   },
 
-  recurseCallbackArray: function(foreignKeys, callback)
-  {
-    var self = this, fkFunc,
-        promises = [];
+  recurseCallbackArray: function(foreignKeys, callback) {
+    var self = this,
+      fkFunc,
+      promises = [];
 
-    while((fkFunc = foreignKeys.pop()))
+    while ((fkFunc = foreignKeys.pop()))
       promises.push(Promise.resolve(fkFunc()));
 
     return Promise.all(promises).nodeify(callback);
@@ -104,14 +104,14 @@ module.exports = Base = Class.extend({
 
   bindForeignKey: function(tableName, columnName, fkOptions) {
     var self = this,
-        mapping = {};
+      mapping = {};
 
-    if(typeof(fkOptions.mapping) === 'string')
+    if (typeof(fkOptions.mapping) === 'string')
       mapping[columnName] = fkOptions.mapping;
     else
       mapping = fkOptions.mapping;
 
-    return function (callback) {
+    return function(callback) {
 
       if (typeof(callback) === 'function')
         self.addForeignKey(tableName, fkOptions.table,
@@ -125,20 +125,22 @@ module.exports = Base = Class.extend({
 
   createColumnDef: function(name, spec, options) {
     name = this._escapeDDL + name + this._escapeDDL;
-    var type       = this.mapDataType(spec.type);
-    var len        = spec.length ? util.format('(%s)', spec.length) : '';
+    var type = this.mapDataType(spec.type);
+    var len = spec.length ? util.format('(%s)', spec.length) : '';
     var constraint = this.createColumnConstraint(spec, options);
 
-    return { foreignKey: null,
-                 constraints: [name, type, len, constraint].join(' ') };
+    return {
+      foreignKey: null,
+      constraints: [name, type, len, constraint].join(' ')
+    };
   },
 
   createMigrationsTable: function(callback) {
     var options = {
       columns: {
         'id': { type: type.INTEGER, notNull: true, primaryKey: true, autoIncrement: true },
-        'name': { type: type.STRING, length: 255, notNull: true},
-        'run_on': { type: type.DATE_TIME, notNull: true}
+        'name': { type: type.STRING, length: 255, notNull: true },
+        'run_on': { type: type.DATE_TIME, notNull: true }
       },
       ifNotExists: true
     };
@@ -149,8 +151,8 @@ module.exports = Base = Class.extend({
     var options = {
       columns: {
         'id': { type: type.INTEGER, notNull: true, primaryKey: true, autoIncrement: true },
-        'name': { type: type.STRING, length: 255, notNull: true},
-        'run_on': { type: type.DATE_TIME, notNull: true}
+        'name': { type: type.STRING, length: 255, notNull: true },
+        'run_on': { type: type.DATE_TIME, notNull: true }
       },
       ifNotExists: true
     };
@@ -169,7 +171,7 @@ module.exports = Base = Class.extend({
     }
 
     var ifNotExistsSql = "";
-    if(tableOptions.ifNotExists) {
+    if (tableOptions.ifNotExists) {
       ifNotExistsSql = "IF NOT EXISTS";
     }
 
@@ -211,10 +213,9 @@ module.exports = Base = Class.extend({
       this.escapeDDL(tableName), columnDefs.join(', '), pkSql);
 
     return this.runSql(sql)
-    .then(function()
-    {
+      .then(function() {
         return this.recurseCallbackArray(foreignKeys);
-    }.bind(this)).nodeify(callback);
+      }.bind(this)).nodeify(callback);
   },
 
   dropTable: function(tableName, options, callback) {
@@ -222,9 +223,8 @@ module.exports = Base = Class.extend({
     if (arguments.length < 3 && typeof(options) === 'function') {
       callback = options;
       options = {};
-    }
-    else {
-      
+    } else {
+
       options = options || {};
     }
 
@@ -250,13 +250,12 @@ module.exports = Base = Class.extend({
       this.escapeDDL(tableName), def.constraints);
 
     return this.runSql(sql)
-    .then(function()
-    {
-      if(def.foreignKey)
-        return def.foreignKey();
-      else
-        return Promise.resolve();
-    }).nodeify(callback);
+      .then(function() {
+        if (def.foreignKey)
+          return def.foreignKey();
+        else
+          return Promise.resolve();
+      }).nodeify(callback);
   },
 
   removeColumn: function(tableName, columnName, callback) {
@@ -273,18 +272,18 @@ module.exports = Base = Class.extend({
 
   quoteDDLArr: function(arr) {
 
-      for(var i = 0; i < arr.length; ++i)
-        arr[i] = this._escapeDDL  + arr[i] + this._escapeDDL;
+    for (var i = 0; i < arr.length; ++i)
+      arr[i] = this._escapeDDL + arr[i] + this._escapeDDL;
 
-      return arr;
+    return arr.toString();
   },
 
   quoteArr: function(arr) {
 
-      for(var i = 0; i < arr.length; ++i)
-        arr[i] = this._escapeString  + arr[i] + this._escapeString;
+    for (var i = 0; i < arr.length; ++i)
+      arr[i] = this._escapeString + arr[i] + this._escapeString;
 
-      return arr;
+    return arr;
   },
 
   addIndex: function(tableName, indexName, columns, unique, callback) {
@@ -306,23 +305,21 @@ module.exports = Base = Class.extend({
 
     var columnNameArray = {};
 
-    if( arguments.length > 3 ) {
+    if (arguments.length > 3) {
 
       columnNameArray = valueArray;
       valueArray = callback;
       callback = arguments[3];
-    }
-    else {
+    } else {
 
       var names;
-      if( util.isArray(valueArray) ) {
+      if (util.isArray(valueArray)) {
         names = Object.keys(valueArray[0]);
-      }
-      else {
-        names  = Object.keys(valueArray);
+      } else {
+        names = Object.keys(valueArray);
       }
 
-      for( var i = 0; i < names.length; ++i ) {
+      for (var i = 0; i < names.length; ++i) {
 
         columnNameArray[names[i]] = names[i];
       }
@@ -340,9 +337,9 @@ module.exports = Base = Class.extend({
     for (var index in columnNameArray) {
       columnNames += this.escapeDDL(columnNameArray[index]);
 
-      if( util.isArray(valueArray) && typeof(valueArray[0]) === 'object') {
+      if (util.isArray(valueArray) && typeof(valueArray[0]) === 'object') {
 
-        for( var i = 0; i < valueArray.length; ++i ) {
+        for (var i = 0; i < valueArray.length; ++i) {
 
           values_part[i] = values_part[i] || '';
 
@@ -352,8 +349,7 @@ module.exports = Base = Class.extend({
             values_part[i] += valueArray[i][index];
           }
         }
-      }
-      else {
+      } else {
 
         if (typeof(valueArray[index]) === 'string') {
           values_part += this.escapeString(valueArray[index]);
@@ -361,23 +357,22 @@ module.exports = Base = Class.extend({
           values_part += valueArray[index];
         }
 
-        values_part +=  ",";
+        values_part += ",";
       }
 
       columnNames += ",";
     }
 
 
-    if( util.isArray(valueArray) && typeof(valueArray[0]) === 'object' ) {
+    if (util.isArray(valueArray) && typeof(valueArray[0]) === 'object') {
 
-      for( var i = 0; i < values_part.length; ++i ) {
+      for (var i = 0; i < values_part.length; ++i) {
 
         values += '(' + values_part[i].slice(0, -1) + '),';
       }
 
       values = values.slice(0, -1);
-    }
-    else {
+    } else {
 
       values += '(' + values_part.slice(0, -1) + ')';
     }
@@ -392,32 +387,30 @@ module.exports = Base = Class.extend({
 
     var columnNameArray = {};
 
-    if ( arguments > 4 && arguments[1].length !== arguments[2].length) {
+    if (arguments > 4 && arguments[1].length !== arguments[2].length) {
 
       return callback(new Error('The number of columns does not match the number of values.'));
-    } else if ( arguments > 4 ) {
+    } else if (arguments > 4) {
 
       columnNameArray = valueArray;
       valueArray = ids;
       ids = callback;
       callback = arguments[4];
-    }
-    else {
+    } else {
       var names;
-      if( util.isArray(valueArray) ) {
+      if (util.isArray(valueArray)) {
         names = Object.keys(valueArray[0]);
-      }
-      else {
-        names  = Object.keys(valueArray);
+      } else {
+        names = Object.keys(valueArray);
       }
 
-      for( var i = 0; i < names.length; ++i ) {
+      for (var i = 0; i < names.length; ++i) {
 
         columnNameArray[names[i]] = names[i];
       }
     }
 
-    var sql = util.format('UPDATE ' + this._escapeDDL + '%s' + this._escapeDDL + ' SET ', tableName );
+    var sql = util.format('UPDATE ' + this._escapeDDL + '%s' + this._escapeDDL + ' SET ', tableName);
 
     for (var index in columnNameArray) {
       sql += columnNameArray[index] + '=';
@@ -429,11 +422,11 @@ module.exports = Base = Class.extend({
       }
 
       if (index != columnNameArray.length - 1) {
-       sql += ", ";
+        sql += ", ";
       }
     }
 
-    sql = sql.substring( 0, sql.length - 2 ) + ' ' + this.buildWhereClause(ids);
+    sql = sql.substring(0, sql.length - 2) + ' ' + this.buildWhereClause(ids);
     return this.runSql(sql).nodeify(callback);
   },
 
@@ -443,9 +436,9 @@ module.exports = Base = Class.extend({
       this.escapeDDL(tableName) + ' ' + this.buildWhereClause(id);
 
     return this.runSql(sql)
-    .then(function(row) {
-      return row[0];
-    });
+      .then(function(row) {
+        return row[0];
+      });
   },
 
   removeIndex: function(tableName, indexName, callback) {
@@ -476,20 +469,20 @@ module.exports = Base = Class.extend({
     }
   },
 
-  addMigrationRecord: function (name, callback) {
+  addMigrationRecord: function(name, callback) {
     this.runSql('INSERT INTO ' + this.escapeDDL(this.internals.migrationTable) +
       ' (' + this.escapeDDL('name') + ', ' + this.escapeDDL('run_on') +
       ') VALUES (?, ?)', [name, new Date()], callback);
   },
 
-  addSeedRecord: function (name, callback) {
+  addSeedRecord: function(name, callback) {
     this.runSql('INSERT INTO ' + this.escapeDDL(this.internals.seedTable) +
-    ' (' + this.escapeDDL('name') + ', ' + this.escapeDDL('run_on') +
-    ') VALUES (?, ?)', [name, new Date()], callback);
+      ' (' + this.escapeDDL('name') + ', ' + this.escapeDDL('run_on') +
+      ') VALUES (?, ?)', [name, new Date()], callback);
   },
 
-  startMigration: function(cb){ return Promise.resolve().nodeify(cb); },
-  endMigration: function(cb){ return Promise.resolve().nodeify(cb); },
+  startMigration: function(cb) { return Promise.resolve().nodeify(cb); },
+  endMigration: function(cb) { return Promise.resolve().nodeify(cb); },
   // sql, params, callback
   // sql, callback
   runSql: function() {
@@ -497,159 +490,154 @@ module.exports = Base = Class.extend({
   },
 
   /**
-    * Queries the migrations table
-    *
-    * @param callback
-    */
+   * Queries the migrations table
+   *
+   * @param callback
+   */
   allLoadedMigrations: function(callback) {
     var sql = 'SELECT * FROM ' + this._escapeDDL + this.internals.migrationTable + this._escapeDDL + ' ORDER BY run_on DESC, name DESC';
     return this.all(sql, callback);
   },
 
   /**
-    * Queries the seeds table
-    *
-    * @param callback
-    */
+   * Queries the seeds table
+   *
+   * @param callback
+   */
   allLoadedSeeds: function(callback) {
     var sql = 'SELECT * FROM ' + this._escapeDDL + this.internals.seedTable + this._escapeDDL + ' ORDER BY run_on DESC, name DESC';
     return this.all(sql, callback);
   },
 
   /**
-    * Deletes a migration
-    *
-    * @param migrationName   - The name of the migration to be deleted
-    */
+   * Deletes a migration
+   *
+   * @param migrationName   - The name of the migration to be deleted
+   */
   deleteMigration: function(migrationName, callback) {
     var sql = 'DELETE FROM ' + this._escapeDDL + this.internals.migrationTable + this._escapeDDL + ' WHERE name = ?';
     this.runSql(sql, [migrationName], callback);
   },
 
   /**
-    * Removes the specified keys from the database
-    *
-    * @param table - The table in which the to be deleted values are located
-    * @param ids - array or object
-    * id array  - arrayof the to be deleted ids
-    * id object - { table: "name of the table to resolve the ids from",
-    *               column: [
-    *               {
-    *                 name: "name of column", //defaults to id if unset
-    *                 operator: ">", //defaults to = if unset
-    *                 searchValue: "12",
-    *                 searchValue: { table: "source", column: [...] },
-    *                 //recursion with objects possible
-    *                 link: "AND" //defaults to AND if unset
-    *               }
-    *               ]
-    *             }
-    *
-    * @return Promise(runSql)
-    */
+   * Removes the specified keys from the database
+   *
+   * @param table - The table in which the to be deleted values are located
+   * @param ids - array or object
+   * id array  - arrayof the to be deleted ids
+   * id object - { table: "name of the table to resolve the ids from",
+   *               column: [
+   *               {
+   *                 name: "name of column", //defaults to id if unset
+   *                 operator: ">", //defaults to = if unset
+   *                 searchValue: "12",
+   *                 searchValue: { table: "source", column: [...] },
+   *                 //recursion with objects possible
+   *                 link: "AND" //defaults to AND if unset
+   *               }
+   *               ]
+   *             }
+   *
+   * @return Promise(runSql)
+   */
   remove: function(table, ids, callback) {
 
-    var sql = 'DELETE FROM ' + this._escapeDDL + table + + this._escapeDDL;
+    var sql = 'DELETE FROM ' + this._escapeDDL + table + +this._escapeDDL;
     var searchClause = '';
 
     return this.runSql(sql + this.buildWhereClause(ids)).nodeify(callback);
   },
 
   /**
-    * Builds a where clause out of column objects.
-    *
-    * @param ids - array or object
-    * id array  - arrayof the to be deleted ids
-    * id object - { table: "name of the table to resolve the ids from",
-    *               column: [
-    *               {
-    *                 name: "name of column", //defaults to id if unset
-    *                 operator: ">", //defaults to = if unset
-    *                 searchValue: "12",
-    *                 searchValue: { table: "source", column: [...] },
-    *                 //recursion with objects possible
-    *                 link: "AND" //defaults to AND if unset
-    *               }
-    *               ]
-    *             }
-    *
-    * @return string
-    */
+   * Builds a where clause out of column objects.
+   *
+   * @param ids - array or object
+   * id array  - arrayof the to be deleted ids
+   * id object - { table: "name of the table to resolve the ids from",
+   *               column: [
+   *               {
+   *                 name: "name of column", //defaults to id if unset
+   *                 operator: ">", //defaults to = if unset
+   *                 searchValue: "12",
+   *                 searchValue: { table: "source", column: [...] },
+   *                 //recursion with objects possible
+   *                 link: "AND" //defaults to AND if unset
+   *               }
+   *               ]
+   *             }
+   *
+   * @return string
+   */
   buildWhereClause: function(ids) {
 
     var searchClause = '';
 
     if (util.isArray(ids) && typeof(ids[0]) !== 'object' && ids.length > 1) {
 
-        searchClause += 'WHERE id IN (' + ids.join(this._escapeString + ',' + this._escapeString) + ')';
-    }
-    else if(typeof(ids) === 'string' || ids.length === 1 ||
-            typeof(ids) === 'number') {
-        var id = (util.isArray(ids)) ? ids[0] : ids;
-        searchClause += 'WHERE id = ' + this._escapeString + id +
-          this._escapeString;
-    }
-    else if (util.isArray(ids) && typeof(ids[0]) === 'object'){
+      searchClause += 'WHERE id IN (' + ids.join(this._escapeString + ',' + this._escapeString) + ')';
+    } else if (typeof(ids) === 'string' || ids.length === 1 ||
+      typeof(ids) === 'number') {
+      var id = (util.isArray(ids)) ? ids[0] : ids;
+      searchClause += 'WHERE id = ' + this._escapeString + id +
+        this._escapeString;
+    } else if (util.isArray(ids) && typeof(ids[0]) === 'object') {
 
 
-        var preLink = ''
-        searchClause = ' WHERE ';
+      var preLink = ''
+      searchClause = ' WHERE ';
 
-        for (var column in ids) {
+      for (var column in ids) {
 
-          var columnKeys = Object.keys(ids[column]);
+        var columnKeys = Object.keys(ids[column]);
 
-            if ( columnKeys.length === 1 ) {
+        if (columnKeys.length === 1) {
 
-              var _column = {
-                name: columnKeys[0],
-                value: ids[column][columnKeys[0]]
-              };
+          var _column = {
+            name: columnKeys[0],
+            value: ids[column][columnKeys[0]]
+          };
 
-              column = _column;
-            }
-            else {
-              column = ids[column];
-            }
-
-            column.name = column.name || 'id',
-            column.operator = column.operator || '=',
-            column.link = column.link || 'AND';
-
-            if (!column.value) {
-
-                return Promise.reject('column ' + column.name +
-                  ' was entered without a search value.');
-            }
-
-            searchClause += ' ' + preLink + ' ' + this._escapeDDL  +
-              column.name + this._escapeDDL + ' ' + column.operator;
-
-            if (typeof(searchValue) === 'object' &&
-                typeof(searchValue.table) === 'string' &&
-                typeof(searchValue.columns) === 'object') {
-
-                searchClause += ' (SELECT ' + this._escapeDDL +
-                  column.selector + this._escapeDDL + ' FROM ' +
-                  this._escapeDDL + column.searchValue.table + this._escapeDDL +
-                  this.buildWhereClause(column.searchValue.column) + ')';
-            }
-            else {
-
-              searchClause += ' (' + this._escapeString  + column.value +
-                this._escapeString + ')';
-            }
-
-            preLink = column.link;
+          column = _column;
+        } else {
+          column = ids[column];
         }
-    }
-    else if( typeof(ids) === 'object' ) {
 
-      var key = Object.keys( ids );
+        column.name = column.name || 'id',
+          column.operator = column.operator || '=',
+          column.link = column.link || 'AND';
+
+        if (!column.value) {
+
+          return Promise.reject('column ' + column.name +
+            ' was entered without a search value.');
+        }
+
+        searchClause += ' ' + preLink + ' ' + this._escapeDDL +
+          column.name + this._escapeDDL + ' ' + column.operator;
+
+        if (typeof(searchValue) === 'object' &&
+          typeof(searchValue.table) === 'string' &&
+          typeof(searchValue.columns) === 'object') {
+
+          searchClause += ' (SELECT ' + this._escapeDDL +
+            column.selector + this._escapeDDL + ' FROM ' +
+            this._escapeDDL + column.searchValue.table + this._escapeDDL +
+            this.buildWhereClause(column.searchValue.column) + ')';
+        } else {
+
+          searchClause += ' (' + this._escapeString + column.value +
+            this._escapeString + ')';
+        }
+
+        preLink = column.link;
+      }
+    } else if (typeof(ids) === 'object') {
+
+      var key = Object.keys(ids);
       var preLink = '';
       searchClause += 'WHERE ';
 
-      for( var i = 0; i < key.length; ++i ) {
+      for (var i = 0; i < key.length; ++i) {
 
         searchClause += preLink + this._escapeDDL + key[i] + this._escapeDDL +
           ' = ' + this._escapeString + ids[key[i]] + this._escapeString;
@@ -662,10 +650,10 @@ module.exports = Base = Class.extend({
 
 
   /**
-    * Deletes a seed
-    *
-    * @param seedName   - The name of the seed to be deleted
-    */
+   * Deletes a seed
+   *
+   * @param seedName   - The name of the seed to be deleted
+   */
   deleteSeed: function(seedName, callback) {
     var sql = 'DELETE FROM ' + this._escapeDDL + this.internals.seedTable + this._escapeDDL + ' WHERE name = ?';
     this.runSql(sql, [seedName], callback);
@@ -676,7 +664,7 @@ module.exports = Base = Class.extend({
   },
 
   escape: function(str) {
-    if(this._escapeString === '\'')
+    if (this._escapeString === '\'')
       return str.replace(/'/g, "''");
     else
       return str.replace(/"/g, '"');
