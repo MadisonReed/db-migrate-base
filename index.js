@@ -411,7 +411,7 @@ var Base = Class.extend({
       arr[i] = this._escapeDDL + arr[i] + this._escapeDDL;
     }
 
-    return arr;
+    return arr.toString();
   },
 
   quoteArr: function (arr) {
